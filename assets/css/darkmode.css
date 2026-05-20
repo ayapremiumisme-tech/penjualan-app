@@ -1,0 +1,21 @@
+/* =========================================
+   DARK MODE
+========================================= */
+
+body.dark-mode{
+    background:#121212;
+    color:#fff;
+}
+
+body.dark-mode .card{
+    background:#1e1e1e;
+    color:#fff;
+}
+
+body.dark-mode .navbar{
+    background:#000 !important;
+}
+
+body.dark-mode .sidebar{
+    background:#000;
+}

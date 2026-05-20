@@ -1,0 +1,20 @@
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media(max-width:768px){
+
+    .sidebar{
+        width:100%;
+        min-height:auto;
+    }
+
+    .dashboard-card{
+        margin-bottom:15px;
+    }
+
+    .auth-card{
+        width:95%;
+    }
+
+}
