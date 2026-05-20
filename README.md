@@ -172,4 +172,4 @@ atau tambahkan manual ke tabel users.
 
 # AUTHOR
 
-Penjualan App
+Nicholas Widjaja
