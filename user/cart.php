@@ -8,6 +8,18 @@ require_once '../config/database.php';
 include '../includes/header.php';
 include 'navbar.php';
 
+/*
+|--------------------------------------------------------------------------
+| AUTO REDIRECT TO CHECKOUT
+|--------------------------------------------------------------------------
+*/
+
+if(isset($_GET['checkout']))
+{
+    header("Location: checkout.php");
+    exit;
+}
+
 ?>
 
 <style>
@@ -427,6 +439,8 @@ body{
                         </span>
 
                     </div>
+
+                    <!-- CHECKOUT -->
 
                     <a href="checkout.php"
                         class="btn btn-modern btn-success-modern w-100">

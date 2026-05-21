@@ -114,6 +114,24 @@ body{
     padding:20px;
 }
 
+/* BUTTON */
+
+.btn-modern{
+    border:none;
+
+    border-radius:12px;
+
+    padding:10px 18px;
+
+    font-weight:600;
+
+    transition:0.3s;
+}
+
+.btn-modern:hover{
+    transform:translateY(-2px);
+}
+
 /* NAVBAR */
 
 .navbar{
@@ -122,6 +140,32 @@ body{
 
 .navbar a{
     color:white !important;
+}
+
+/* PAYMENT IMAGE */
+
+.payment-image{
+    width:100%;
+
+    max-width:220px;
+
+    border-radius:16px;
+
+    margin-top:15px;
+}
+
+/* DELETE BUTTON */
+
+.btn-delete{
+    background:#ef4444;
+
+    color:white;
+}
+
+.btn-delete:hover{
+    background:#dc2626;
+
+    color:white;
 }
 
 </style>
@@ -145,6 +189,20 @@ body{
         </p>
 
     </div>
+
+    <!-- ALERT -->
+
+    <?php if(isset($_SESSION['success'])) : ?>
+
+        <div class="alert alert-success rounded-4">
+
+            <?= $_SESSION['success']; ?>
+
+        </div>
+
+        <?php unset($_SESSION['success']); ?>
+
+    <?php endif; ?>
 
     <div class="row">
 
@@ -211,9 +269,42 @@ body{
 
                                 </span>
 
+                                <!-- BAYAR SEKARANG -->
+
+                                <div class="mt-3">
+
+                                    <a href="payment.php?id=<?= $row['id']; ?>"
+                                        class="btn btn-light btn-modern">
+
+                                        Bayar Sekarang
+
+                                    </a>
+
+                                </div>
+
                             <?php endif; ?>
 
                         </div>
+
+                        <!-- PAYMENT PROOF -->
+
+                        <?php if(!empty($row['payment_proof'])) : ?>
+
+                            <div class="account-box mb-4">
+
+                                <h5 class="fw-bold text-success">
+
+                                    Bukti Pembayaran
+
+                                </h5>
+
+                                <img
+                                    src="../uploads/payments/<?= $row['payment_proof']; ?>"
+                                    class="payment-image">
+
+                            </div>
+
+                        <?php endif; ?>
 
                         <!-- ACCOUNT -->
 
@@ -221,7 +312,7 @@ body{
                             !empty($row['account_email'])
                         ) : ?>
 
-                            <div class="account-box">
+                            <div class="account-box mb-4">
 
                                 <h5 class="fw-bold text-warning mb-4">
 
@@ -271,7 +362,7 @@ body{
 
                         <?php else : ?>
 
-                            <div class="account-box text-center">
+                            <div class="account-box text-center mb-4">
 
                                 <h6 class="mb-2">
 
@@ -288,6 +379,31 @@ body{
                             </div>
 
                         <?php endif; ?>
+
+                        <!-- ACTION -->
+
+                        <div class="d-flex gap-2 flex-wrap">
+
+                            <!-- INVOICE -->
+
+                            <a href="invoice.php?id=<?= $row['id']; ?>"
+                                class="btn btn-light btn-modern">
+
+                                Invoice
+
+                            </a>
+
+                            <!-- DELETE -->
+
+                            <a href="delete-transaction.php?id=<?= $row['id']; ?>"
+                                class="btn btn-delete btn-modern"
+                                onclick="return confirm('Yakin ingin menghapus transaksi ini?')">
+
+                                Hapus
+
+                            </a>
+
+                        </div>
 
                     </div>
 
