@@ -7,30 +7,17 @@ require_once '../../includes/middleware.php';
 isLogin();
 isAdmin();
 
-/*
-|--------------------------------------------------------------------------
-| CHECK ID
-|--------------------------------------------------------------------------
-*/
-
-if(!isset($_GET['id']))
-{
-    header("Location: index.php");
-    exit;
-}
-
-$id = intval($_GET['id']);
+$id = $_GET['id'] ?? 0;
 
 /*
 |--------------------------------------------------------------------------
-| GET TRANSACTION DETAIL
+| GET TRANSACTION
 |--------------------------------------------------------------------------
 */
 
 $query = mysqli_query(
     $conn,
-    "SELECT transactions.*, users.name AS user_name,
-    users.email AS user_email
+    "SELECT transactions.*, users.name AS user_name
     FROM transactions
     LEFT JOIN users
     ON transactions.user_id = users.id
@@ -38,16 +25,57 @@ $query = mysqli_query(
     LIMIT 1"
 );
 
-if(mysqli_num_rows($query) == 0)
-{
-    $_SESSION['error'] =
-        "Transaksi tidak ditemukan";
+$row = mysqli_fetch_assoc($query);
 
+if(!$row)
+{
     header("Location: index.php");
     exit;
 }
 
-$transaction = mysqli_fetch_assoc($query);
+/*
+|--------------------------------------------------------------------------
+| SAVE ACCOUNT
+|--------------------------------------------------------------------------
+*/
+
+if(isset($_POST['send_account']))
+{
+    $account_email =
+        mysqli_real_escape_string(
+            $conn,
+            $_POST['account_email']
+        );
+
+    $account_password =
+        mysqli_real_escape_string(
+            $conn,
+            $_POST['account_password']
+        );
+
+    $account_note =
+        mysqli_real_escape_string(
+            $conn,
+            $_POST['account_note']
+        );
+
+    mysqli_query(
+        $conn,
+        "UPDATE transactions SET
+
+        account_email='$account_email',
+        account_password='$account_password',
+        account_note='$account_note'
+
+        WHERE id='$id'"
+    );
+
+    $_SESSION['success'] =
+        "Akun berhasil dikirim";
+
+    header("Location: detail.php?id=$id");
+    exit;
+}
 
 include '../../includes/header.php';
 include '../../includes/navbar.php';
@@ -70,9 +98,12 @@ include '../../includes/navbar.php';
 
         <div class="col-md-10 p-4">
 
-            <!-- PAGE HEADER -->
+            <!-- TITLE -->
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex
+                justify-content-between
+                align-items-center
+                mb-4">
 
                 <div>
 
@@ -82,18 +113,17 @@ include '../../includes/navbar.php';
 
                     </h3>
 
-                    <p class="text-muted mb-0">
+                    <p class="text-muted">
 
-                        Informasi lengkap transaksi
+                        Invoice:
+                        <?= $row['invoice_number']; ?>
 
                     </p>
 
                 </div>
 
                 <a href="index.php"
-                    class="btn btn-secondary rounded-3">
-
-                    <i class="fas fa-arrow-left"></i>
+                    class="btn btn-secondary">
 
                     Kembali
 
@@ -101,208 +131,186 @@ include '../../includes/navbar.php';
 
             </div>
 
-            <!-- DETAIL CARD -->
+            <!-- ALERT -->
 
-            <div class="card border-0 shadow-sm rounded-4">
+            <?php if(isset($_SESSION['success'])) : ?>
 
-                <div class="card-body">
+                <div class="alert alert-success">
+
+                    <?= $_SESSION['success']; ?>
+
+                </div>
+
+                <?php unset($_SESSION['success']); ?>
+
+            <?php endif; ?>
+
+            <!-- DETAIL -->
+
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+                <div class="card-body p-4">
 
                     <div class="row">
 
-                        <!-- LEFT -->
+                        <div class="col-md-6 mb-3">
 
-                        <div class="col-md-6">
+                            <strong>User:</strong>
 
-                            <table class="table">
+                            <br>
 
-                                <tr>
-
-                                    <th width="200">
-
-                                        Invoice
-
-                                    </th>
-
-                                    <td>
-
-                                        <?= $transaction['invoice_number']; ?>
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>
-
-                                        Nama User
-
-                                    </th>
-
-                                    <td>
-
-                                        <?= $transaction['user_name']; ?>
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>
-
-                                        Email User
-
-                                    </th>
-
-                                    <td>
-
-                                        <?= $transaction['user_email']; ?>
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>
-
-                                        Total Transaksi
-
-                                    </th>
-
-                                    <td>
-
-                                        Rp <?= number_format($transaction['total']); ?>
-
-                                    </td>
-
-                                </tr>
-
-                            </table>
+                            <?= $row['user_name']; ?>
 
                         </div>
 
-                        <!-- RIGHT -->
+                        <div class="col-md-6 mb-3">
 
-                        <div class="col-md-6">
+                            <strong>Total:</strong>
 
-                            <table class="table">
+                            <br>
 
-                                <tr>
+                            Rp <?= number_format(
+                                $row['total']
+                            ); ?>
 
-                                    <th width="200">
+                        </div>
 
-                                        Status Pembayaran
+                        <div class="col-md-6 mb-3">
 
-                                    </th>
+                            <strong>Status:</strong>
 
-                                    <td>
+                            <br>
 
-                                        <?php if($transaction['payment_status'] == 'paid') : ?>
+                            <?= strtoupper(
+                                $row['payment_status']
+                            ); ?>
 
-                                            <span class="badge bg-success">
+                        </div>
 
-                                                Paid
+                        <div class="col-md-6 mb-3">
 
-                                            </span>
+                            <strong>Metode:</strong>
 
-                                        <?php elseif($transaction['payment_status'] == 'pending') : ?>
+                            <br>
 
-                                            <span class="badge bg-warning">
-
-                                                Pending
-
-                                            </span>
-
-                                        <?php else : ?>
-
-                                            <span class="badge bg-danger">
-
-                                                Failed
-
-                                            </span>
-
-                                        <?php endif; ?>
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>
-
-                                        Tanggal
-
-                                    </th>
-
-                                    <td>
-
-                                        <?= date(
-                                            'd M Y H:i',
-                                            strtotime($transaction['created_at'])
-                                        ); ?>
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>
-
-                                        Transaction ID
-
-                                    </th>
-
-                                    <td>
-
-                                        #TRX<?= $transaction['id']; ?>
-
-                                    </td>
-
-                                </tr>
-
-                            </table>
+                            <?= $row['payment_method']; ?>
 
                         </div>
 
                     </div>
 
-                    <!-- ACTION -->
+                </div>
 
-                    <div class="mt-4 d-flex gap-2">
+            </div>
 
-                        <a href="edit.php?id=<?= $transaction['id']; ?>"
-                            class="btn btn-warning rounded-3">
+            <!-- PAYMENT PROOF -->
 
-                            <i class="fas fa-edit"></i>
+            <?php if(!empty($row['payment_proof'])) : ?>
 
-                            Edit
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
 
-                        </a>
+                    <div class="card-body p-4">
 
-                        <a href="invoice.php?id=<?= $transaction['id']; ?>"
-                            class="btn btn-primary rounded-3">
+                        <h4 class="fw-bold mb-4">
 
-                            <i class="fas fa-file-invoice"></i>
+                            Bukti Pembayaran
 
-                            Invoice
+                        </h4>
 
-                        </a>
-
-                        <a href="print.php?id=<?= $transaction['id']; ?>"
-                            class="btn btn-dark rounded-3"
-                            target="_blank">
-
-                            <i class="fas fa-print"></i>
-
-                            Print
-
-                        </a>
+                        <img
+                            src="../../uploads/payments/<?= $row['payment_proof']; ?>"
+                            class="img-fluid rounded-4 shadow"
+                            width="350">
 
                     </div>
+
+                </div>
+
+            <?php endif; ?>
+
+            <!-- SEND ACCOUNT -->
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-body p-4">
+
+                    <h4 class="fw-bold mb-4">
+
+                        Kirim Akun Netflix
+
+                    </h4>
+
+                    <form method="POST">
+
+                        <!-- EMAIL -->
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                Email Akun
+
+                            </label>
+
+                            <input
+                                type="text"
+                                name="account_email"
+                                class="form-control"
+                                value="<?= $row['account_email'] ?? ''; ?>"
+                                required>
+
+                        </div>
+
+                        <!-- PASSWORD -->
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                Password Akun
+
+                            </label>
+
+                            <input
+                                type="text"
+                                name="account_password"
+                                class="form-control"
+                                value="<?= $row['account_password'] ?? ''; ?>"
+                                required>
+
+                        </div>
+
+                        <!-- NOTE -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label">
+
+                                Catatan
+
+                            </label>
+
+                            <textarea
+                                name="account_note"
+                                class="form-control"
+                                rows="4"><?= $row['account_note'] ?? ''; ?></textarea>
+
+                        </div>
+
+                        <!-- BUTTON -->
+
+                        <button
+                            type="submit"
+                            name="send_account"
+                            class="btn btn-success">
+
+                            <i class="fas fa-paper-plane"></i>
+
+                            Kirim Akun
+
+                        </button>
+
+                    </form>
 
                 </div>
 

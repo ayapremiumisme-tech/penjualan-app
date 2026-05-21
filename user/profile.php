@@ -4,10 +4,12 @@ session_start();
 require_once '../config/config.php';
 require_once '../config/database.php';
 
-include '../includes/header.php';
-include 'navbar.php';
+/*
+|--------------------------------------------------------------------------
+| CHECK LOGIN
+|--------------------------------------------------------------------------
+*/
 
-// Cek login
 if(!isset($_SESSION['user_id']))
 {
     header("Location: ../auth/login.php");
@@ -16,7 +18,12 @@ if(!isset($_SESSION['user_id']))
 
 $user_id = $_SESSION['user_id'];
 
-// Ambil data user
+/*
+|--------------------------------------------------------------------------
+| GET USER DATA
+|--------------------------------------------------------------------------
+*/
+
 $query = mysqli_query(
     $conn,
     "SELECT * FROM users
@@ -26,24 +33,65 @@ $query = mysqli_query(
 
 $user = mysqli_fetch_assoc($query);
 
-// UPDATE PROFILE
+/*
+|--------------------------------------------------------------------------
+| UPDATE PROFILE
+|--------------------------------------------------------------------------
+*/
+
 if(isset($_POST['update_profile']))
 {
     $name = htmlspecialchars($_POST['name']);
     $email = htmlspecialchars($_POST['email']);
 
-    // FOTO PROFILE
+    /*
+    |--------------------------------------------------------------------------
+    | FOTO PROFILE
+    |--------------------------------------------------------------------------
+    */
+
     $photo = $user['photo'] ?? '';
 
-    if(isset($_FILES['photo']) &&
-        $_FILES['photo']['error'] == 0)
+    if(
+        isset($_FILES['photo']) &&
+        $_FILES['photo']['error'] == 0
+    )
     {
+        /*
+        |--------------------------------------------------------------------------
+        | CREATE FOLDER
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            !file_exists('../uploads/profiles/')
+        )
+        {
+            mkdir(
+                '../uploads/profiles/',
+                0777,
+                true
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILE NAME
+        |--------------------------------------------------------------------------
+        */
+
         $fileName =
             time() . '_' .
             $_FILES['photo']['name'];
 
         $tmp =
             $_FILES['photo']['tmp_name'];
+
+        /*
+        |--------------------------------------------------------------------------
+        | MOVE FILE
+        |--------------------------------------------------------------------------
+        */
 
         move_uploaded_file(
             $tmp,
@@ -53,7 +101,12 @@ if(isset($_POST['update_profile']))
         $photo = $fileName;
     }
 
-    // PASSWORD
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE PASSWORD
+    |--------------------------------------------------------------------------
+    */
+
     if(!empty($_POST['password']))
     {
         $password =
@@ -65,10 +118,12 @@ if(isset($_POST['update_profile']))
         mysqli_query(
             $conn,
             "UPDATE users SET
+
             name='$name',
             email='$email',
             password='$password',
             photo='$photo'
+
             WHERE id='$user_id'"
         );
     }
@@ -77,9 +132,11 @@ if(isset($_POST['update_profile']))
         mysqli_query(
             $conn,
             "UPDATE users SET
+
             name='$name',
             email='$email',
             photo='$photo'
+
             WHERE id='$user_id'"
         );
     }
@@ -91,17 +148,193 @@ if(isset($_POST['update_profile']))
     exit;
 }
 
+/*
+|--------------------------------------------------------------------------
+| INCLUDE HEADER
+|--------------------------------------------------------------------------
+*/
+
+include '../includes/header.php';
+include 'navbar.php';
+
 ?>
 
-<div class="container mt-5">
+<style>
+
+body{
+    background:
+    linear-gradient(
+        135deg,
+        #6c8cff,
+        #7b4dbe
+    );
+
+    min-height:100vh;
+
+    font-family:'Poppins', sans-serif;
+
+    color:white;
+}
+
+/* HERO */
+
+.hero-section{
+    text-align:center;
+
+    padding:40px 0 60px;
+}
+
+.hero-title{
+    font-size:52px;
+
+    font-weight:700;
+}
+
+.hero-subtitle{
+    opacity:0.9;
+}
+
+/* GLASS CARD */
+
+.glass-card{
+    background:
+    rgba(255,255,255,0.15);
+
+    backdrop-filter:blur(12px);
+
+    border:
+    1px solid rgba(255,255,255,0.2);
+
+    border-radius:28px;
+
+    box-shadow:
+    0 10px 40px rgba(0,0,0,0.2);
+}
+
+/* PROFILE PHOTO */
+
+.profile-photo{
+    width:130px;
+    height:130px;
+
+    border-radius:50%;
+
+    object-fit:cover;
+
+    border:5px solid rgba(255,255,255,0.4);
+
+    box-shadow:
+    0 5px 20px rgba(0,0,0,0.25);
+}
+
+/* INPUT */
+
+.form-control{
+    border:none;
+
+    border-radius:16px;
+
+    padding:14px 18px;
+
+    background:
+    rgba(255,255,255,0.92);
+
+    box-shadow:none !important;
+}
+
+/* LABEL */
+
+.form-label{
+    font-weight:600;
+
+    margin-bottom:10px;
+}
+
+/* BUTTON */
+
+.btn-modern{
+    border:none;
+
+    border-radius:16px;
+
+    padding:14px;
+
+    background:white;
+
+    color:#6c63ff;
+
+    font-weight:700;
+
+    transition:0.3s;
+}
+
+.btn-modern:hover{
+    background:#f3f4f6;
+
+    transform:translateY(-2px);
+}
+
+/* ALERT */
+
+.alert-modern{
+    background:
+    rgba(34,197,94,0.2);
+
+    border:
+    1px solid rgba(34,197,94,0.4);
+
+    color:white;
+
+    border-radius:16px;
+}
+
+/* NAVBAR */
+
+.navbar{
+    background:transparent !important;
+}
+
+.navbar a{
+    color:white !important;
+}
+
+</style>
+
+<div class="container py-5">
+
+    <!-- HERO -->
+
+    <div class="hero-section">
+
+        <h1 class="hero-title">
+
+            Profile Saya
+
+        </h1>
+
+        <p class="hero-subtitle">
+
+            Kelola informasi akun anda dengan mudah
+
+        </p>
+
+    </div>
 
     <!-- ALERT -->
 
     <?php if(isset($_SESSION['success'])) : ?>
 
-        <div class="alert alert-success">
+        <div class="row justify-content-center mb-4">
 
-            <?= $_SESSION['success']; ?>
+            <div class="col-lg-6">
+
+                <div class="alert alert-modern">
+
+                    <?= $_SESSION['success']; ?>
+
+                </div>
+
+            </div>
 
         </div>
 
@@ -111,135 +344,136 @@ if(isset($_POST['update_profile']))
 
     <div class="row justify-content-center">
 
-        <div class="col-md-8">
+        <div class="col-lg-6">
 
-            <div class="card border-0 shadow-lg rounded-4">
+            <div class="glass-card p-5">
 
-                <div class="card-body p-5">
+                <!-- PROFILE -->
 
-                    <!-- TITLE -->
+                <div class="text-center mb-5">
 
-                    <div class="text-center mb-5">
+                    <?php
+                    $photo =
+                        !empty($user['photo'])
+                        ? '../uploads/profiles/' .
+                            $user['photo'] .
+                            '?v=' . time()
+                        : 'https://via.placeholder.com/130';
+                    ?>
 
-                        <!-- PHOTO -->
+                    <img
+                        src="<?= $photo; ?>"
+                        class="profile-photo mb-3">
 
-                        <?php
-                        $photo =
-                            !empty($user['photo'])
-                            ? '../uploads/profiles/' .
-                                $user['photo']
-                            : 'https://via.placeholder.com/120';
-                        ?>
+                    <h3 class="fw-bold">
 
-                        <img
-                            src="<?= $photo; ?>"
-                            width="120"
-                            height="120"
-                            class="rounded-circle shadow mb-3"
-                            style="object-fit:cover;">
+                        <?= htmlspecialchars(
+                            $user['name']
+                        ); ?>
 
-                        <h2 class="fw-bold">
+                    </h3>
 
-                            Profile Saya
+                    <p class="text-light">
 
-                        </h2>
+                        <?= htmlspecialchars(
+                            $user['email']
+                        ); ?>
 
-                        <p class="text-muted">
+                    </p>
 
-                            Kelola informasi akun anda
+                </div>
 
-                        </p>
+                <!-- FORM -->
+
+                <form
+                    method="POST"
+                    enctype="multipart/form-data">
+
+                    <!-- NAME -->
+
+                    <div class="mb-4">
+
+                        <label class="form-label">
+
+                            Nama Lengkap
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="name"
+                            class="form-control"
+                            value="<?= htmlspecialchars(
+                                $user['name'] ?? ''
+                            ); ?>"
+                            required>
 
                     </div>
 
-                    <!-- FORM -->
+                    <!-- EMAIL -->
 
-                    <form method="POST"
-                        enctype="multipart/form-data">
+                    <div class="mb-4">
 
-                        <!-- NAME -->
+                        <label class="form-label">
 
-                        <div class="mb-4">
+                            Email
 
-                            <label class="form-label fw-semibold">
+                        </label>
 
-                                Nama Lengkap
+                        <input
+                            type="email"
+                            name="email"
+                            class="form-control"
+                            value="<?= htmlspecialchars(
+                                $user['email'] ?? ''
+                            ); ?>"
+                            required>
 
-                            </label>
+                    </div>
 
-                            <input
-                                type="text"
-                                name="name"
-                                class="form-control rounded-3"
-                                value="<?= htmlspecialchars(
-                                    $user['name'] ?? ''
-                                ); ?>"
-                                required>
+                    <!-- PASSWORD -->
 
-                        </div>
+                    <div class="mb-4">
 
-                        <!-- EMAIL -->
+                        <label class="form-label">
 
-                        <div class="mb-4">
+                            Password Baru
 
-                            <label class="form-label fw-semibold">
+                        </label>
 
-                                Email
+                        <input
+                            type="password"
+                            name="password"
+                            class="form-control"
+                            placeholder="Kosongkan jika tidak ingin mengganti password">
 
-                            </label>
+                    </div>
 
-                            <input
-                                type="email"
-                                name="email"
-                                class="form-control rounded-3"
-                                value="<?= htmlspecialchars(
-                                    $user['email'] ?? ''
-                                ); ?>"
-                                required>
+                    <!-- PHOTO -->
 
-                        </div>
+                    <div class="mb-5">
 
-                        <!-- PASSWORD -->
+                        <label class="form-label">
 
-                        <div class="mb-4">
+                            Foto Profile
 
-                            <label class="form-label fw-semibold">
+                        </label>
 
-                                Password Baru
+                        <input
+                            type="file"
+                            name="photo"
+                            class="form-control">
 
-                            </label>
+                    </div>
 
-                            <input
-                                type="password"
-                                name="password"
-                                class="form-control rounded-3"
-                                placeholder="Kosongkan jika tidak ingin mengganti password">
+                    <!-- BUTTON -->
 
-                        </div>
-
-                        <!-- PHOTO -->
-
-                        <div class="mb-4">
-
-                            <label class="form-label fw-semibold">
-
-                                Foto Profile
-
-                            </label>
-
-                            <input
-                                type="file"
-                                name="photo"
-                                class="form-control rounded-3">
-
-                        </div>
-
-                        <!-- BUTTON -->
+                    <div class="d-grid">
 
                         <button
                             type="submit"
                             name="update_profile"
-                            class="btn btn-primary w-100 rounded-3">
+                            class="btn btn-modern">
 
                             <i class="fas fa-save"></i>
 
@@ -247,9 +481,9 @@ if(isset($_POST['update_profile']))
 
                         </button>
 
-                    </form>
+                    </div>
 
-                </div>
+                </form>
 
             </div>
 

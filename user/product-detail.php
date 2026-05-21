@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 
 require_once '../config/config.php';
@@ -7,17 +8,27 @@ require_once '../config/database.php';
 include '../includes/header.php';
 include 'navbar.php';
 
-// VALIDASI ID
-if(!isset($_GET['id']) || !is_numeric($_GET['id']))
-{
-    $_SESSION['error'] = "Produk tidak valid!";
+/*
+|--------------------------------------------------------------------------
+| VALIDASI ID
+|--------------------------------------------------------------------------
+*/
+
+if(!isset($_GET['id'])){
+
     header("Location: products.php");
     exit;
+
 }
 
 $id = intval($_GET['id']);
 
-// AMBIL DATA PRODUK
+/*
+|--------------------------------------------------------------------------
+| GET PRODUCT
+|--------------------------------------------------------------------------
+*/
+
 $query = mysqli_query(
     $conn,
     "SELECT * FROM products
@@ -25,219 +36,295 @@ $query = mysqli_query(
     LIMIT 1"
 );
 
-if(mysqli_num_rows($query) == 0)
-{
-    $_SESSION['error'] = "Produk tidak ditemukan!";
-    header("Location: products.php");
+if(mysqli_num_rows($query) == 0){
+
+    echo "
+    <div class='container py-5 text-white'>
+        Produk tidak ditemukan
+    </div>
+    ";
+
     exit;
+
 }
 
 $product = mysqli_fetch_assoc($query);
+
 ?>
+
+<style>
+
+body{
+    background:
+    linear-gradient(
+        135deg,
+        #6c8cff,
+        #7b4dbe
+    );
+
+    min-height:100vh;
+
+    font-family:'Poppins', sans-serif;
+
+    color:white;
+}
+
+/* GLASS */
+
+.glass-card{
+    background:
+    rgba(255,255,255,0.15);
+
+    backdrop-filter:blur(12px);
+
+    border:
+    1px solid rgba(255,255,255,0.2);
+
+    border-radius:25px;
+
+    box-shadow:
+    0 8px 30px rgba(0,0,0,0.2);
+}
+
+/* IMAGE */
+
+.product-image{
+    width:100%;
+    height:500px;
+
+    object-fit:cover;
+
+    border-radius:20px;
+}
+
+/* TITLE */
+
+.product-title{
+    font-size:40px;
+    font-weight:700;
+}
+
+/* PRICE */
+
+.product-price{
+    color:#ffe082;
+
+    font-size:35px;
+
+    font-weight:bold;
+}
+
+/* DESC */
+
+.product-description{
+    line-height:1.9;
+
+    color:#f3f4f6;
+}
+
+/* BUTTON */
+
+.btn-modern{
+    border:none;
+
+    border-radius:14px;
+
+    padding:14px 20px;
+
+    font-weight:600;
+
+    transition:0.3s;
+}
+
+.btn-cart{
+    background:white;
+
+    color:#6c63ff;
+}
+
+.btn-cart:hover{
+    background:#f3f4f6;
+}
+
+.btn-buy{
+    background:#22c55e;
+
+    color:white;
+}
+
+.btn-buy:hover{
+    background:#16a34a;
+
+    color:white;
+}
+
+/* BADGE */
+
+.badge-modern{
+    background:
+    rgba(255,255,255,0.2);
+
+    padding:10px 18px;
+
+    border-radius:12px;
+
+    font-size:14px;
+}
+
+/* NAVBAR */
+
+.navbar{
+    background:transparent !important;
+}
+
+.navbar a{
+    color:white !important;
+}
+
+</style>
 
 <div class="container py-5">
 
-    <div class="row">
+    <div class="glass-card p-4 p-lg-5">
 
-        <!-- IMAGE -->
+        <div class="row align-items-center">
 
-        <div class="col-md-6 mb-4">
+            <!-- IMAGE -->
 
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="col-lg-6 mb-4">
 
                 <img
                     src="../uploads/products/<?= $product['image']; ?>"
-                    class="img-fluid"
-                    style="
-                        width:100%;
-                        height:500px;
-                        object-fit:cover;
-                    ">
+                    class="product-image">
 
             </div>
 
-        </div>
+            <!-- DETAIL -->
 
-        <!-- DETAIL -->
+            <div class="col-lg-6">
 
-        <div class="col-md-6">
+                <!-- CATEGORY -->
 
-            <!-- TITLE -->
+                <div class="mb-3">
 
-            <h2 class="fw-bold mb-3">
+                    <span class="badge-modern">
 
-                <?= htmlspecialchars($product['name']); ?>
+                        Produk Premium
 
-            </h2>
-
-            <!-- PRICE -->
-
-            <h3 class="text-success fw-bold mb-4">
-
-                Rp <?= number_format($product['price']); ?>
-
-            </h3>
-
-            <!-- BADGE -->
-
-            <div class="mb-4">
-
-                <span class="badge bg-primary p-2">
-
-                    Produk Digital
-
-                </span>
-
-                <span class="badge bg-success p-2">
-
-                    Ready Stock
-
-                </span>
-
-            </div>
-
-            <!-- DESCRIPTION -->
-
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-
-                <div class="card-body">
-
-                    <h5 class="fw-bold mb-3">
-
-                        Deskripsi Produk
-
-                    </h5>
-
-                    <p class="text-muted lh-lg">
-
-                        <?php
-                        if(
-                            !empty($product['description'])
-                        )
-                        {
-                            echo nl2br(
-                                htmlspecialchars(
-                                    $product['description']
-                                )
-                            );
-                        }
-                        else
-                        {
-                            echo "
-                            Produk ini merupakan layanan premium
-                            dengan kualitas terbaik dan harga
-                            terjangkau.
-
-                            Cocok digunakan untuk kebutuhan pribadi,
-                            bisnis, hiburan, dan berbagai aktivitas
-                            lainnya.
-
-                            Produk tersedia dan siap digunakan
-                            setelah pembayaran berhasil dilakukan.
-                            ";
-                        }
-                        ?>
-
-                    </p>
+                    </span>
 
                 </div>
 
-            </div>
+                <!-- TITLE -->
 
-            <!-- FEATURES -->
+                <h1 class="product-title mb-3">
 
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <?= $product['name']; ?>
 
-                <div class="card-body">
+                </h1>
 
-                    <h5 class="fw-bold mb-3">
+                <!-- PRICE -->
 
-                        Keunggulan Produk
+                <div class="product-price mb-4">
 
-                    </h5>
-
-                    <ul class="list-group list-group-flush">
-
-                        <li class="list-group-item">
-
-                            ✅ Produk original & terpercaya
-
-                        </li>
-
-                        <li class="list-group-item">
-
-                            ✅ Pengiriman cepat otomatis
-
-                        </li>
-
-                        <li class="list-group-item">
-
-                            ✅ Support 24 jam
-
-                        </li>
-
-                        <li class="list-group-item">
-
-                            ✅ Harga terbaik
-
-                        </li>
-
-                    </ul>
+                    Rp <?= number_format($product['price']); ?>
 
                 </div>
 
-            </div>
+                <!-- DESCRIPTION -->
 
-            <!-- FORM -->
+                <div class="product-description mb-4">
 
-            <form
-                action="add-cart.php?id=<?= $product['id']; ?>"
-                method="POST">
-
-                <div class="mb-4">
-
-                    <label class="fw-semibold mb-2">
-
-                        Jumlah
-
-                    </label>
-
-                    <input
-                        type="number"
-                        name="qty"
-                        value="1"
-                        min="1"
-                        class="form-control rounded-3"
-                        style="width:120px;">
+                    <?= !empty($product['description'])
+                        ? nl2br($product['description'])
+                        : 'Produk premium berkualitas tinggi dengan pelayanan terbaik dan proses cepat. Cocok untuk kebutuhan digital anda.'; ?>
 
                 </div>
 
                 <!-- BUTTON -->
 
-                <div class="d-grid gap-2">
+                <div class="d-flex gap-3 flex-wrap">
 
-                    <button
-                        type="submit"
-                        class="btn btn-primary btn-lg rounded-3">
+                    <!-- CART -->
 
-                        <i class="fas fa-shopping-cart"></i>
+                    <a href="add-cart.php?id=<?= $product['id']; ?>"
+                        class="btn btn-modern btn-cart">
 
-                        Tambah ke Keranjang
+                        🛒 Tambah Keranjang
 
-                    </button>
+                    </a>
 
-                    <a href="products.php"
-                        class="btn btn-outline-secondary btn-lg rounded-3">
+                    <!-- BUY -->
 
-                        <i class="fas fa-arrow-left"></i>
+                    <a href="checkout.php?id=<?= $product['id']; ?>"
+                        class="btn btn-modern btn-buy">
 
-                        Kembali ke Produk
+                        ⚡ Beli Sekarang
+
+                    </a>
+
+                    <!-- WISHLIST -->
+
+                    <a href="add-wishlist.php?id=<?= $product['id']; ?>"
+                        class="btn btn-modern btn-cart">
+
+                        ❤️ Wishlist
 
                     </a>
 
                 </div>
 
-            </form>
+                <!-- INFO -->
+
+                <div class="mt-5">
+
+                    <div class="row">
+
+                        <div class="col-6 mb-3">
+
+                            <div class="glass-card p-3 text-center">
+
+                                <h5 class="fw-bold">
+
+                                    Premium
+
+                                </h5>
+
+                                <small>
+
+                                    Kualitas Terbaik
+
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-6 mb-3">
+
+                            <div class="glass-card p-3 text-center">
+
+                                <h5 class="fw-bold">
+
+                                    Fast Process
+
+                                </h5>
+
+                                <small>
+
+                                    Proses Cepat
+
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 

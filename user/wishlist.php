@@ -8,99 +8,295 @@ require_once '../config/database.php';
 include '../includes/header.php';
 include 'navbar.php';
 
+/*
+|--------------------------------------------------------------------------
+| INIT WISHLIST
+|--------------------------------------------------------------------------
+*/
+
+if(!isset($_SESSION['wishlist'])){
+    $_SESSION['wishlist'] = [];
+}
+
 ?>
 
-<div class="container mt-4">
+<style>
 
-    <h3 class="fw-bold mb-4">
+body{
+    background:
+    linear-gradient(
+        135deg,
+        #6c8cff,
+        #7b4dbe
+    );
 
-        Wishlist
+    min-height:100vh;
 
-    </h3>
+    font-family:'Poppins', sans-serif;
 
-    <?php if(
-        isset($_SESSION['wishlist']) &&
-        count($_SESSION['wishlist']) > 0
-    ) : ?>
+    color:white;
+}
 
-    <div class="row">
+/* TITLE */
 
-        <?php
+.page-title{
+    font-size:42px;
+    font-weight:700;
+}
 
-        foreach($_SESSION['wishlist'] as $productId) :
+/* GLASS CARD */
 
-            $query = mysqli_query(
-                $conn,
-                "SELECT * FROM products
-                WHERE id='$productId'
-                LIMIT 1"
-            );
+.glass-card{
+    background:
+    rgba(255,255,255,0.15);
 
-            if(mysqli_num_rows($query) > 0) :
+    backdrop-filter:blur(12px);
 
-                $product = mysqli_fetch_assoc($query);
+    border:
+    1px solid rgba(255,255,255,0.2);
 
-        ?>
+    border-radius:25px;
 
-        <div class="col-md-3 mb-4">
+    overflow:hidden;
 
-            <div class="card h-100 shadow-sm rounded-4">
+    transition:0.3s;
 
-                <!-- IMAGE -->
+    box-shadow:
+    0 8px 30px rgba(0,0,0,0.2);
+}
 
-                <img
-                    src="../uploads/products/<?= $product['image']; ?>"
-                    class="card-img-top rounded-top-4"
-                    style="height:220px; object-fit:cover;">
+.glass-card:hover{
+    transform:translateY(-5px);
 
-                <!-- BODY -->
+    box-shadow:
+    0 12px 35px rgba(0,0,0,0.3);
+}
 
-                <div class="card-body d-flex flex-column">
+/* PRODUCT IMAGE */
 
-                    <h5 class="fw-semibold">
+.product-image{
+    width:100%;
+    height:240px;
 
-                        <?= $product['name']; ?>
+    object-fit:cover;
+}
 
-                    </h5>
+/* PRODUCT BODY */
 
-                    <p class="text-primary fw-bold">
+.product-body{
+    padding:20px;
+}
 
-                        Rp <?= number_format($product['price']); ?>
+/* PRODUCT TITLE */
 
-                    </p>
+.product-title{
+    font-size:20px;
+    font-weight:600;
+}
 
-                    <div class="mt-auto">
+/* PRICE */
 
-                        <a
-                            href="product-detail.php?id=<?= $product['id']; ?>"
-                            class="btn btn-primary w-100 rounded-3">
+.product-price{
+    color:#ffe082;
 
-                            Detail Produk
+    font-size:24px;
 
-                        </a>
+    font-weight:bold;
+}
+
+/* BUTTON */
+
+.btn-modern{
+    border:none;
+
+    border-radius:14px;
+
+    padding:12px 18px;
+
+    font-weight:600;
+
+    transition:0.3s;
+}
+
+.btn-cart{
+    background:white;
+
+    color:#6c63ff;
+}
+
+.btn-cart:hover{
+    background:#f3f4f6;
+}
+
+.btn-delete{
+    background:#ef4444;
+
+    color:white;
+}
+
+.btn-delete:hover{
+    background:#dc2626;
+
+    color:white;
+}
+
+/* EMPTY */
+
+.empty-box{
+    text-align:center;
+
+    padding:80px 20px;
+}
+
+.empty-icon{
+    font-size:90px;
+}
+
+/* NAVBAR */
+
+.navbar{
+    background:transparent !important;
+}
+
+.navbar a{
+    color:white !important;
+}
+
+</style>
+
+<div class="container py-5">
+
+    <!-- HEADER -->
+
+    <div class="mb-5">
+
+        <h1 class="page-title">
+
+            Wishlist Saya
+
+        </h1>
+
+        <p class="text-light">
+
+            Daftar produk favorit anda
+
+        </p>
+
+    </div>
+
+    <!-- WISHLIST -->
+
+    <?php if(count($_SESSION['wishlist']) > 0): ?>
+
+        <div class="row">
+
+            <?php foreach($_SESSION['wishlist'] as $item): ?>
+
+                <div class="col-md-4 mb-4">
+
+                    <div class="glass-card h-100">
+
+                        <!-- IMAGE -->
+
+                        <img
+                            src="../uploads/products/<?= $item['image'] ?? 'netflix.jpg'; ?>"
+                            class="product-image">
+
+                        <!-- BODY -->
+
+                        <div class="product-body">
+
+                            <!-- TITLE -->
+
+                            <div class="product-title mb-2">
+
+                                <?= htmlspecialchars($item['name']); ?>
+
+                            </div>
+
+                            <!-- PRICE -->
+
+                            <div class="product-price mb-4">
+
+                                Rp <?= number_format($item['price']); ?>
+
+                            </div>
+
+                            <!-- BUTTON -->
+
+                            <div class="d-grid gap-2">
+
+                                <!-- DETAIL -->
+
+                                <a href="product-detail.php?id=<?= $item['id']; ?>"
+                                    class="btn btn-modern btn-cart">
+
+                                    Detail Produk
+
+                                </a>
+
+                                <!-- CART -->
+
+                                <a href="add-cart.php?id=<?= $item['id']; ?>"
+                                    class="btn btn-modern btn-cart">
+
+                                    Tambah ke Keranjang
+
+                                </a>
+
+                                <!-- DELETE -->
+
+                                <a href="remove-wishlist.php?id=<?= $item['id']; ?>"
+                                    class="btn btn-modern btn-delete">
+
+                                    Hapus Wishlist
+
+                                </a>
+
+                            </div>
+
+                        </div>
 
                     </div>
 
                 </div>
 
-            </div>
+            <?php endforeach; ?>
 
         </div>
 
-        <?php
-            endif;
-        endforeach;
-        ?>
+    <?php else: ?>
 
-    </div>
+        <!-- EMPTY -->
 
-    <?php else : ?>
+        <div class="glass-card empty-box">
 
-    <div class="alert alert-warning rounded-3">
+            <div class="empty-icon mb-4">
 
-        Wishlist kosong
+                ❤️
 
-    </div>
+            </div>
+
+            <h2 class="fw-bold mb-3">
+
+                Wishlist Kosong
+
+            </h2>
+
+            <p class="text-light mb-4">
+
+                Belum ada produk favorit yang anda simpan
+
+            </p>
+
+            <a href="products.php"
+                class="btn btn-modern btn-cart">
+
+                Mulai Belanja
+
+            </a>
+
+        </div>
 
     <?php endif; ?>
 

@@ -1,33 +1,49 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<?php
+
+if(session_status() == PHP_SESSION_NONE){
+    session_start();
+}
+
+?>
+
+<nav class="navbar navbar-expand-lg navbar-dark py-3">
 
     <div class="container">
 
-        <a class="navbar-brand fw-bold" href="home.php">
+        <!-- LOGO -->
 
-            <i class="fas fa-store"></i>
+        <a class="navbar-brand fw-bold"
+            href="home.php">
 
             Penjualan App
 
         </a>
 
-        <button class="navbar-toggler"
+        <!-- TOGGLER -->
+
+        <button
+            class="navbar-toggler"
             type="button"
             data-bs-toggle="collapse"
-            data-bs-target="#navbarUser">
+            data-bs-target="#navbarNav">
 
             <span class="navbar-toggler-icon"></span>
 
         </button>
 
-        <div class="collapse navbar-collapse"
-            id="navbarUser">
+        <!-- MENU -->
 
-            <ul class="navbar-nav ms-auto">
+        <div class="collapse navbar-collapse"
+            id="navbarNav">
+
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+
+                <!-- HOME -->
 
                 <li class="nav-item">
 
-                    <a href="home.php"
-                        class="nav-link">
+                    <a class="nav-link"
+                        href="home.php">
 
                         Home
 
@@ -35,10 +51,12 @@
 
                 </li>
 
+                <!-- PRODUCTS -->
+
                 <li class="nav-item">
 
-                    <a href="products.php"
-                        class="nav-link">
+                    <a class="nav-link"
+                        href="products.php">
 
                         Produk
 
@@ -46,21 +64,72 @@
 
                 </li>
 
-                <li class="nav-item">
+                <!-- CART -->
 
-                    <a href="cart.php"
-                        class="nav-link">
+                <li class="nav-item position-relative">
+
+                    <a class="nav-link"
+                        href="cart.php">
 
                         Cart
+
+                        <?php
+                        $cartCount =
+                            isset($_SESSION['cart'])
+                            ? count($_SESSION['cart'])
+                            : 0;
+                        ?>
+
+                        <?php if($cartCount > 0): ?>
+
+                            <span class="badge bg-danger rounded-pill">
+
+                                <?= $cartCount; ?>
+
+                            </span>
+
+                        <?php endif; ?>
 
                     </a>
 
                 </li>
 
+                <!-- WISHLIST -->
+
+                <li class="nav-item position-relative">
+
+                    <a class="nav-link"
+                        href="wishlist.php">
+
+                        Wishlist
+
+                        <?php
+                        $wishlistCount =
+                            isset($_SESSION['wishlist'])
+                            ? count($_SESSION['wishlist'])
+                            : 0;
+                        ?>
+
+                        <?php if($wishlistCount > 0): ?>
+
+                            <span class="badge bg-warning text-dark rounded-pill">
+
+                                <?= $wishlistCount; ?>
+
+                            </span>
+
+                        <?php endif; ?>
+
+                    </a>
+
+                </li>
+
+                <!-- TRANSACTIONS -->
+
                 <li class="nav-item">
 
-                    <a href="transactions.php"
-                        class="nav-link">
+                    <a class="nav-link"
+                        href="transactions.php">
 
                         Transaksi
 
@@ -68,10 +137,12 @@
 
                 </li>
 
+                <!-- PROFILE -->
+
                 <li class="nav-item">
 
-                    <a href="profile.php"
-                        class="nav-link">
+                    <a class="nav-link"
+                        href="profile.php">
 
                         Profile
 
@@ -79,10 +150,12 @@
 
                 </li>
 
-                <li class="nav-item">
+                <!-- LOGOUT -->
+
+                <li class="nav-item ms-lg-3">
 
                     <a href="../auth/logout.php"
-                        class="nav-link text-warning">
+                        class="btn btn-light rounded-pill px-4">
 
                         Logout
 
