@@ -1,67 +1,231 @@
 <?php
 
+session_start();
+
 require_once '../config/config.php';
 require_once '../config/database.php';
 
 include '../includes/header.php';
 include 'navbar.php';
 
+/*
+|--------------------------------------------------------------------------
+| GET PRODUCTS
+|--------------------------------------------------------------------------
+*/
+
+$products = mysqli_query($conn,
+    "SELECT * FROM products ORDER BY id DESC LIMIT 8"
+);
+
 ?>
 
-<div class="container mt-4">
+<style>
 
-    <h3>Home</h3>
+body{
+    background:
+    linear-gradient(
+        135deg,
+        #6c8cff,
+        #7b4dbe
+    );
 
-</div>
+    min-height:100vh;
 
-<?php include '../includes/footer.php'; ?>
+    font-family:'Poppins', sans-serif;
+}
 
-<div class="container mt-4">
-    <div class="card shadow-sm rounded-4 p-4">
-        <h3 class="fw-bold">Selamat Datang!</h3>
-        <p>Belanja produk terbaik dengan mudah dan cepat.</p>
+/* HERO */
+
+.hero-section{
+    text-align:center;
+    padding:80px 20px;
+    color:white;
+}
+
+.hero-title{
+    font-size:55px;
+    font-weight:700;
+}
+
+.hero-subtitle{
+    font-size:18px;
+    opacity:0.9;
+}
+
+/* GLASS CARD */
+
+.glass-card{
+    background:
+    rgba(255,255,255,0.15);
+
+    backdrop-filter:blur(12px);
+
+    border:
+    1px solid rgba(255,255,255,0.2);
+
+    border-radius:25px;
+
+    overflow:hidden;
+
+    transition:0.3s;
+
+    box-shadow:
+    0 8px 30px rgba(0,0,0,0.2);
+}
+
+.glass-card:hover{
+    transform:translateY(-5px);
+}
+
+/* PRODUCT IMAGE */
+
+.product-image{
+    width:100%;
+    height:230px;
+    object-fit:cover;
+}
+
+/* PRODUCT BODY */
+
+.product-body{
+    padding:20px;
+    color:white;
+}
+
+.product-title{
+    font-size:18px;
+    font-weight:600;
+}
+
+.product-price{
+    color:#ffe082;
+    font-size:20px;
+    font-weight:bold;
+}
+
+/* BUTTON */
+
+.btn-modern{
+    width:100%;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:white;
+
+    color:#6c63ff;
+
+    font-weight:600;
+
+    padding:12px;
+
+    transition:0.3s;
+}
+
+.btn-modern:hover{
+    background:#f3f4f6;
+}
+
+/* SECTION TITLE */
+
+.section-title{
+    color:white;
+    font-size:35px;
+    font-weight:700;
+}
+
+/* NAVBAR FIX */
+
+.navbar{
+    background:transparent !important;
+}
+
+.navbar a{
+    color:white !important;
+}
+
+</style>
+
+<div class="container py-5">
+
+    <!-- HERO -->
+
+    <div class="hero-section">
+
+        <h1 class="hero-title">
+
+            Penjualan App
+
+        </h1>
+
+        <p class="hero-subtitle">
+
+            Sistem Informasi Penjualan Modern
+            Dengan Tampilan Premium
+
+        </p>
+
     </div>
 
-    <!-- Banner Carousel -->
-    <div id="bannerCarousel" class="carousel slide mt-4" data-bs-ride="carousel">
-        <div class="carousel-inner">
-            <?php
-            $banners = mysqli_query($conn, "SELECT * FROM banners ORDER BY id DESC");
-            $active = true;
-            while($banner = mysqli_fetch_assoc($banners)):
-            ?>
-            <div class="carousel-item <?= $active ? 'active' : ''; ?>">
-                <img src="../uploads/banners/<?= $banner['image']; ?>" class="d-block w-100 rounded" style="height:400px; object-fit:cover;">
-            </div>
-            <?php $active = false; endwhile; ?>
-        </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon"></span>
-        </button>
+    <!-- TITLE -->
+
+    <div class="mb-4">
+
+        <h2 class="section-title">
+
+            Produk Terbaru
+
+        </h2>
+
     </div>
 
-    <!-- Produk Terbaru -->
-    <h3 class="mt-5 fw-bold">Produk Terbaru</h3>
+    <!-- PRODUCTS -->
+
     <div class="row">
-        <?php
-        $products = mysqli_query($conn, "SELECT * FROM products ORDER BY id DESC LIMIT 8");
-        while($row = mysqli_fetch_assoc($products)):
-        ?>
+
+        <?php while($row = mysqli_fetch_assoc($products)) : ?>
+
         <div class="col-md-3 mb-4">
-            <div class="card h-100 shadow-sm rounded-4">
-                <img src="../uploads/products/<?= $row['image']; ?>" class="card-img-top rounded-top-4" style="height:220px; object-fit:cover;">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="fw-semibold"><?= $row['name']; ?></h5>
-                    <p class="text-primary fw-bold">Rp <?= number_format($row['price']); ?></p>
-                    <a href="product-detail.php?id=<?= $row['id']; ?>" class="btn btn-primary w-100 mt-auto rounded-3">Detail Produk</a>
+
+            <div class="glass-card h-100">
+
+                <img
+                    src="../uploads/products/<?= $row['image']; ?>"
+                    class="product-image">
+
+                <div class="product-body">
+
+                    <div class="product-title mb-2">
+
+                        <?= $row['name']; ?>
+
+                    </div>
+
+                    <div class="product-price mb-3">
+
+                        Rp <?= number_format($row['price']); ?>
+
+                    </div>
+
+                    <a href="product-detail.php?id=<?= $row['id']; ?>"
+                        class="btn btn-modern">
+
+                        Detail Produk
+
+                    </a>
+
                 </div>
+
             </div>
+
         </div>
+
         <?php endwhile; ?>
+
     </div>
+
 </div>
 
 <?php include '../includes/footer.php'; ?>

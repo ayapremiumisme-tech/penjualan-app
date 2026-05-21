@@ -1,13 +1,16 @@
 <?php
+
 session_start();
 
 require_once '../config/config.php';
 require_once '../config/database.php';
 
-include '../includes/header.php';
-include 'navbar.php';
+/*
+|--------------------------------------------------------------------------
+| CHECK LOGIN
+|--------------------------------------------------------------------------
+*/
 
-// Cek login
 if(!isset($_SESSION['user_id']))
 {
     header("Location: ../auth/login.php");
@@ -16,7 +19,12 @@ if(!isset($_SESSION['user_id']))
 
 $user_id = $_SESSION['user_id'];
 
-// Ambil transaksi user
+/*
+|--------------------------------------------------------------------------
+| GET TRANSACTIONS
+|--------------------------------------------------------------------------
+*/
+
 $query = mysqli_query(
     $conn,
     "SELECT *
@@ -25,251 +33,407 @@ $query = mysqli_query(
     ORDER BY id DESC"
 );
 
+include '../includes/header.php';
+include 'navbar.php';
+
 ?>
 
-<div class="container mt-5">
+<style>
 
-    <!-- TITLE -->
+body{
+    background:
+    linear-gradient(
+        135deg,
+        #6c8cff,
+        #7b4dbe
+    );
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    min-height:100vh;
 
-        <div>
+    font-family:'Poppins', sans-serif;
 
-            <h2 class="fw-bold">
+    color:white;
+}
 
-                Riwayat Transaksi
+/* HERO */
 
-            </h2>
+.hero-section{
+    text-align:center;
 
-            <p class="text-muted mb-0">
+    padding:40px 0 60px;
+}
 
-                Semua transaksi pembelian anda
+.hero-title{
+    font-size:50px;
 
-            </p>
+    font-weight:700;
+}
 
-        </div>
+.hero-subtitle{
+    opacity:0.9;
+}
 
-        <a href="products.php"
-            class="btn btn-primary rounded-3">
+/* GLASS CARD */
 
-            <i class="fas fa-shopping-bag"></i>
+.glass-card{
+    background:
+    rgba(255,255,255,0.15);
 
-            Belanja Lagi
+    backdrop-filter:blur(12px);
 
-        </a>
+    border:
+    1px solid rgba(255,255,255,0.2);
+
+    border-radius:25px;
+
+    box-shadow:
+    0 8px 30px rgba(0,0,0,0.2);
+}
+
+/* STATUS */
+
+.badge-modern{
+    padding:10px 16px;
+
+    border-radius:12px;
+
+    font-size:14px;
+}
+
+/* ACCOUNT BOX */
+
+.account-box{
+    background:
+    rgba(255,255,255,0.1);
+
+    border:
+    1px solid rgba(255,255,255,0.2);
+
+    border-radius:20px;
+
+    padding:20px;
+}
+
+/* BUTTON */
+
+.btn-modern{
+    border:none;
+
+    border-radius:12px;
+
+    padding:10px 18px;
+
+    font-weight:600;
+
+    transition:0.3s;
+}
+
+.btn-modern:hover{
+    transform:translateY(-2px);
+}
+
+/* NAVBAR */
+
+.navbar{
+    background:transparent !important;
+}
+
+.navbar a{
+    color:white !important;
+}
+
+/* PAYMENT IMAGE */
+
+.payment-image{
+    width:100%;
+
+    max-width:220px;
+
+    border-radius:16px;
+
+    margin-top:15px;
+}
+
+/* DELETE BUTTON */
+
+.btn-delete{
+    background:#ef4444;
+
+    color:white;
+}
+
+.btn-delete:hover{
+    background:#dc2626;
+
+    color:white;
+}
+
+</style>
+
+<div class="container py-5">
+
+    <!-- HERO -->
+
+    <div class="hero-section">
+
+        <h1 class="hero-title">
+
+            Transaksi Saya
+
+        </h1>
+
+        <p class="hero-subtitle">
+
+            Riwayat pembelian akun anda
+
+        </p>
 
     </div>
 
-    <!-- CARD -->
+    <!-- ALERT -->
 
-    <div class="card border-0 shadow-sm rounded-4">
+    <?php if(isset($_SESSION['success'])) : ?>
 
-        <div class="card-body">
+        <div class="alert alert-success rounded-4">
 
-            <?php if(mysqli_num_rows($query) > 0) : ?>
+            <?= $_SESSION['success']; ?>
 
-                <div class="table-responsive">
+        </div>
 
-                    <table class="table align-middle table-hover">
+        <?php unset($_SESSION['success']); ?>
 
-                        <thead class="table-light">
+    <?php endif; ?>
 
-                            <tr>
+    <div class="row">
 
-                                <th>No</th>
-                                <th>Invoice</th>
-                                <th>Total</th>
-                                <th>Metode</th>
-                                <th>Status</th>
-                                <th>Tanggal</th>
-                                <th width="180">Aksi</th>
+        <?php if(mysqli_num_rows($query) > 0) : ?>
 
-                            </tr>
+            <?php while($row = mysqli_fetch_assoc($query)) : ?>
 
-                        </thead>
+                <div class="col-lg-6 mb-4">
 
-                        <tbody>
+                    <div class="glass-card p-4 h-100">
 
-                            <?php
-                            $no = 1;
+                        <!-- INVOICE -->
 
-                            while($row = mysqli_fetch_assoc($query)) :
-                            ?>
+                        <div class="mb-3">
 
-                            <tr>
+                            <h5 class="fw-bold">
 
-                                <!-- NO -->
+                                <?= $row['invoice_number']; ?>
 
-                                <td>
+                            </h5>
 
-                                    <?= $no++; ?>
+                        </div>
 
-                                </td>
+                        <!-- TOTAL -->
 
-                                <!-- INVOICE -->
+                        <div class="mb-3">
 
-                                <td>
+                            <span class="text-light">
 
-                                    <span class="fw-semibold text-primary">
+                                Total Pembayaran
 
-                                        <?= htmlspecialchars(
-                                            $row['invoice_number']
-                                            ?? 'INV-000'
+                            </span>
+
+                            <h3 class="fw-bold text-warning">
+
+                                Rp <?= number_format(
+                                    $row['total']
+                                ); ?>
+
+                            </h3>
+
+                        </div>
+
+                        <!-- STATUS -->
+
+                        <div class="mb-4">
+
+                            <?php if(
+                                $row['payment_status']
+                                == 'paid'
+                            ) : ?>
+
+                                <span class="badge bg-success badge-modern">
+
+                                    Paid
+
+                                </span>
+
+                            <?php else : ?>
+
+                                <span class="badge bg-warning text-dark badge-modern">
+
+                                    Pending
+
+                                </span>
+
+                                <!-- BAYAR SEKARANG -->
+
+                                <div class="mt-3">
+
+                                    <a href="payment.php?id=<?= $row['id']; ?>"
+                                        class="btn btn-light btn-modern">
+
+                                        Bayar Sekarang
+
+                                    </a>
+
+                                </div>
+
+                            <?php endif; ?>
+
+                        </div>
+
+                        <!-- PAYMENT PROOF -->
+
+                        <?php if(!empty($row['payment_proof'])) : ?>
+
+                            <div class="account-box mb-4">
+
+                                <h5 class="fw-bold text-success">
+
+                                    Bukti Pembayaran
+
+                                </h5>
+
+                                <img
+                                    src="../uploads/payments/<?= $row['payment_proof']; ?>"
+                                    class="payment-image">
+
+                            </div>
+
+                        <?php endif; ?>
+
+                        <!-- ACCOUNT -->
+
+                        <?php if(
+                            !empty($row['account_email'])
+                        ) : ?>
+
+                            <div class="account-box mb-4">
+
+                                <h5 class="fw-bold text-warning mb-4">
+
+                                    Akun Netflix
+
+                                </h5>
+
+                                <div class="mb-2">
+
+                                    <strong>Email:</strong>
+
+                                    <br>
+
+                                    <?= $row['account_email']; ?>
+
+                                </div>
+
+                                <div class="mb-2">
+
+                                    <strong>Password:</strong>
+
+                                    <br>
+
+                                    <?= $row['account_password']; ?>
+
+                                </div>
+
+                                <?php if(
+                                    !empty($row['account_note'])
+                                ) : ?>
+
+                                    <div class="mt-3">
+
+                                        <strong>Catatan:</strong>
+
+                                        <br>
+
+                                        <?= nl2br(
+                                            $row['account_note']
                                         ); ?>
-
-                                    </span>
-
-                                </td>
-
-                                <!-- TOTAL -->
-
-                                <td>
-
-                                    Rp <?= number_format(
-                                        $row['total_amount']
-                                        ?? 0
-                                    ); ?>
-
-                                </td>
-
-                                <!-- PAYMENT METHOD -->
-
-                                <td>
-
-                                    <?= htmlspecialchars(
-                                        $row['payment_method']
-                                        ?? '-'
-                                    ); ?>
-
-                                </td>
-
-                                <!-- STATUS -->
-
-                                <td>
-
-                                    <?php
-                                    $status =
-                                        $row['payment_status']
-                                        ?? 'pending';
-                                    ?>
-
-                                    <?php if($status == 'paid') : ?>
-
-                                        <span class="badge bg-success">
-
-                                            Paid
-
-                                        </span>
-
-                                    <?php elseif($status == 'pending') : ?>
-
-                                        <span class="badge bg-warning text-dark">
-
-                                            Pending
-
-                                        </span>
-
-                                    <?php else : ?>
-
-                                        <span class="badge bg-danger">
-
-                                            Failed
-
-                                        </span>
-
-                                    <?php endif; ?>
-
-                                </td>
-
-                                <!-- DATE -->
-
-                                <td>
-
-                                    <?php
-                                    $date =
-                                        $row['created_at']
-                                        ?? date('Y-m-d');
-                                    ?>
-
-                                    <?= date(
-                                        'd M Y',
-                                        strtotime($date)
-                                    ); ?>
-
-                                </td>
-
-                                <!-- ACTION -->
-
-                                <td>
-
-                                    <div class="d-flex gap-1">
-
-                                        <!-- DETAIL -->
-
-                                        <a href="invoice.php?id=<?= $row['id']; ?>"
-                                            class="btn btn-primary btn-sm rounded-3">
-
-                                            <i class="fas fa-eye"></i>
-
-                                        </a>
-
-                                        <!-- PRINT -->
-
-                                        <a href="invoice.php?id=<?= $row['id']; ?>"
-                                            target="_blank"
-                                            class="btn btn-dark btn-sm rounded-3">
-
-                                            <i class="fas fa-print"></i>
-
-                                        </a>
 
                                     </div>
 
-                                </td>
+                                <?php endif; ?>
 
-                            </tr>
+                            </div>
 
-                            <?php endwhile; ?>
+                        <?php else : ?>
 
-                        </tbody>
+                            <div class="account-box text-center mb-4">
 
-                    </table>
+                                <h6 class="mb-2">
+
+                                    Akun belum dikirim admin
+
+                                </h6>
+
+                                <small class="text-light">
+
+                                    Tunggu admin memproses pesanan anda
+
+                                </small>
+
+                            </div>
+
+                        <?php endif; ?>
+
+                        <!-- ACTION -->
+
+                        <div class="d-flex gap-2 flex-wrap">
+
+                            <!-- INVOICE -->
+
+                            <a href="invoice.php?id=<?= $row['id']; ?>"
+                                class="btn btn-light btn-modern">
+
+                                Invoice
+
+                            </a>
+
+                            <!-- DELETE -->
+
+                            <a href="delete-transaction.php?id=<?= $row['id']; ?>"
+                                class="btn btn-delete btn-modern"
+                                onclick="return confirm('Yakin ingin menghapus transaksi ini?')">
+
+                                Hapus
+
+                            </a>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
-            <?php else : ?>
+            <?php endwhile; ?>
 
-                <!-- EMPTY -->
+        <?php else : ?>
 
-                <div class="text-center py-5">
+            <div class="col-12">
 
-                    <i class="fas fa-shopping-cart
-                        fa-4x text-muted mb-3"></i>
+                <div class="glass-card p-5 text-center">
 
-                    <h5 class="fw-bold">
+                    <h4 class="fw-bold">
 
                         Belum Ada Transaksi
 
-                    </h5>
+                    </h4>
 
-                    <p class="text-muted">
+                    <p class="text-light">
 
-                        Silahkan lakukan pembelian produk terlebih dahulu
+                        Anda belum melakukan pembelian
 
                     </p>
 
-                    <a href="products.php"
-                        class="btn btn-primary rounded-3">
-
-                        Mulai Belanja
-
-                    </a>
-
                 </div>
 
-            <?php endif; ?>
+            </div>
 
-        </div>
+        <?php endif; ?>
 
     </div>
 
