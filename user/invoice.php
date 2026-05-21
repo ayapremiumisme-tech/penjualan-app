@@ -1,350 +1,397 @@
 <?php
+
 session_start();
 
 require_once '../config/config.php';
 require_once '../config/database.php';
 
-include '../includes/header.php';
-include 'navbar.php';
+/*
+|--------------------------------------------------------------------------
+| CHECK LOGIN
+|--------------------------------------------------------------------------
+*/
 
-// CEK ID
-if(!isset($_GET['id']) || !is_numeric($_GET['id']))
-{
-    $_SESSION['error'] = "Invoice tidak ditemukan";
+if(
+    !isset($_SESSION['user']) &&
+    !isset($_SESSION['user_id'])
+){
+
+    header("Location: ../auth/login.php");
+    exit;
+
+}
+
+/*
+|--------------------------------------------------------------------------
+| VALIDASI ID
+|--------------------------------------------------------------------------
+*/
+
+if(
+    !isset($_GET['id']) ||
+    !is_numeric($_GET['id'])
+){
+
     header("Location: transactions.php");
     exit;
+
 }
 
 $id = intval($_GET['id']);
 
-// AMBIL TRANSAKSI
+/*
+|--------------------------------------------------------------------------
+| GET TRANSACTION
+|--------------------------------------------------------------------------
+*/
+
 $query = mysqli_query(
     $conn,
-    "SELECT * FROM transactions
+    "SELECT *
+    FROM transactions
     WHERE id='$id'
     LIMIT 1"
 );
 
-if(mysqli_num_rows($query) == 0)
-{
-    $_SESSION['error'] = "Data transaksi tidak ditemukan";
+if(mysqli_num_rows($query) == 0){
+
     header("Location: transactions.php");
     exit;
+
 }
 
 $transaction = mysqli_fetch_assoc($query);
 
-// AMBIL DETAIL TRANSAKSI
-$details = mysqli_query(
-    $conn,
-    "SELECT *
-    FROM transaction_details
-    WHERE transaction_id='$id'"
-);
+/*
+|--------------------------------------------------------------------------
+| HEADER
+|--------------------------------------------------------------------------
+*/
+
+include '../includes/header.php';
+include 'navbar.php';
 
 ?>
 
-<div class="container mt-5">
+<style>
+
+body{
+    background:
+    linear-gradient(
+        135deg,
+        #6c8cff,
+        #7b4dbe
+    );
+
+    min-height:100vh;
+
+    font-family:'Poppins', sans-serif;
+
+    color:white;
+}
+
+/* HERO */
+
+.hero-section{
+    text-align:center;
+
+    padding:40px 0 60px;
+}
+
+.hero-title{
+    font-size:50px;
+
+    font-weight:700;
+}
+
+.hero-subtitle{
+    opacity:0.9;
+}
+
+/* GLASS */
+
+.glass-card{
+    background:
+    rgba(255,255,255,0.15);
+
+    backdrop-filter:blur(12px);
+
+    border:
+    1px solid rgba(255,255,255,0.2);
+
+    border-radius:25px;
+
+    overflow:hidden;
+
+    box-shadow:
+    0 8px 30px rgba(0,0,0,0.2);
+}
+
+/* LABEL */
+
+.invoice-label{
+    font-size:14px;
+
+    opacity:0.8;
+
+    margin-bottom:5px;
+}
+
+.invoice-value{
+    font-size:18px;
+
+    font-weight:600;
+}
+
+/* TOTAL */
+
+.total-price{
+    font-size:38px;
+
+    font-weight:700;
+
+    color:#ffe082;
+}
+
+/* STATUS */
+
+.badge-paid{
+    background:#22c55e;
+}
+
+.badge-pending{
+    background:#facc15;
+    color:black;
+}
+
+.badge-failed{
+    background:#ef4444;
+}
+
+/* BUTTON */
+
+.btn-modern{
+    border:none;
+
+    border-radius:12px;
+
+    background:white;
+
+    color:#6c63ff;
+
+    font-weight:600;
+
+    padding:12px 20px;
+
+    transition:0.3s;
+}
+
+.btn-modern:hover{
+    background:#f3f4f6;
+}
+
+/* NAVBAR */
+
+.navbar{
+    background:transparent !important;
+}
+
+.navbar a{
+    color:white !important;
+}
+
+</style>
+
+<div class="container py-5">
+
+    <!-- HERO -->
+
+    <div class="hero-section">
+
+        <h1 class="hero-title">
+
+            Invoice
+
+        </h1>
+
+        <p class="hero-subtitle">
+
+            Detail transaksi pembelian anda
+
+        </p>
+
+    </div>
+
+    <!-- INVOICE -->
 
     <div class="row justify-content-center">
 
-        <div class="col-md-10">
+        <div class="col-lg-8">
 
-            <!-- CARD -->
+            <div class="glass-card p-5">
 
-            <div class="card border-0 shadow-lg rounded-4">
+                <!-- INVOICE NUMBER -->
 
-                <div class="card-body p-5">
+                <div class="mb-4">
 
-                    <!-- HEADER -->
+                    <div class="invoice-label">
 
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-
-                        <div>
-
-                            <h2 class="fw-bold text-primary">
-
-                                Invoice
-
-                            </h2>
-
-                            <p class="text-muted mb-0">
-
-                                Detail transaksi pembelian
-
-                            </p>
-
-                        </div>
-
-                        <div>
-
-                            <button
-                                onclick="window.print()"
-                                class="btn btn-dark rounded-3">
-
-                                <i class="fas fa-print"></i>
-
-                                Print
-
-                            </button>
-
-                        </div>
+                        Invoice Number
 
                     </div>
 
-                    <hr>
+                    <div class="invoice-value">
 
-                    <!-- INFO -->
+                        <?= $transaction['invoice_number']; ?>
 
-                    <div class="row mb-4">
+                    </div>
 
-                        <!-- LEFT -->
+                </div>
 
-                        <div class="col-md-6">
+                <!-- DATE -->
 
-                            <h6 class="fw-bold mb-3">
+                <div class="mb-4">
 
-                                Informasi Invoice
+                    <div class="invoice-label">
 
-                            </h6>
+                        Tanggal
 
-                            <p class="mb-1">
+                    </div>
 
-                                <strong>Invoice :</strong>
+                    <div class="invoice-value">
 
-                                <?= htmlspecialchars(
-                                    $transaction['invoice_number']
-                                    ?? 'INV-000'
-                                ); ?>
+                        <?= date(
+                            'd M Y H:i',
+                            strtotime($transaction['created_at'])
+                        ); ?>
 
-                            </p>
+                    </div>
 
-                            <p class="mb-1">
+                </div>
 
-                                <strong>Tanggal :</strong>
+                <!-- PAYMENT METHOD -->
 
-                                <?= date(
-                                    'd M Y',
-                                    strtotime(
-                                        $transaction['created_at']
-                                        ?? date('Y-m-d')
-                                    )
-                                ); ?>
+                <div class="mb-4">
 
-                            </p>
+                    <div class="invoice-label">
 
-                            <p class="mb-1">
+                        Metode Pembayaran
 
-                                <strong>Status :</strong>
+                    </div>
 
-                                <?php
-                                $status =
-                                    $transaction['payment_status']
-                                    ?? 'pending';
-                                ?>
+                    <div class="invoice-value">
 
-                                <?php if($status == 'paid') : ?>
+                        <?= $transaction['payment_method'] ?? 'QRIS'; ?>
 
-                                    <span class="badge bg-success">
+                    </div>
 
-                                        Paid
+                </div>
 
-                                    </span>
+                <!-- STATUS -->
 
-                                <?php elseif($status == 'pending') : ?>
+                <div class="mb-4">
 
-                                    <span class="badge bg-warning text-dark">
+                    <div class="invoice-label">
 
-                                        Pending
+                        Status Pembayaran
 
-                                    </span>
+                    </div>
 
-                                <?php else : ?>
+                    <div class="invoice-value">
 
-                                    <span class="badge bg-danger">
+                        <?php if($transaction['payment_status'] == 'paid'): ?>
 
-                                        Failed
+                            <span class="badge badge-paid">
 
-                                    </span>
+                                Paid
 
-                                <?php endif; ?>
+                            </span>
 
-                            </p>
+                        <?php elseif($transaction['payment_status'] == 'pending'): ?>
+
+                            <span class="badge badge-pending">
+
+                                Pending
+
+                            </span>
+
+                        <?php else: ?>
+
+                            <span class="badge badge-failed">
+
+                                Failed
+
+                            </span>
+
+                        <?php endif; ?>
+
+                    </div>
+
+                </div>
+
+                <!-- TOTAL -->
+
+                <div class="mb-5">
+
+                    <div class="invoice-label">
+
+                        Total Pembayaran
+
+                    </div>
+
+                    <div class="total-price">
+
+                        Rp <?= number_format($transaction['total']); ?>
+
+                    </div>
+
+                </div>
+
+                <!-- PAYMENT PROOF -->
+
+                <?php if(!empty($transaction['payment_proof'])): ?>
+
+                    <div class="mb-5">
+
+                        <div class="invoice-label mb-3">
+
+                            Bukti Pembayaran
 
                         </div>
 
-                        <!-- RIGHT -->
-
-                        <div class="col-md-6 text-md-end">
-
-                            <h6 class="fw-bold mb-3">
-
-                                Pembayaran
-
-                            </h6>
-
-                            <p class="mb-1">
-
-                                <strong>Metode :</strong>
-
-                                <?= htmlspecialchars(
-                                    $transaction['payment_method']
-                                    ?? '-'
-                                ); ?>
-
-                            </p>
-
-                            <p class="mb-1">
-
-                                <strong>Total :</strong>
-
-                                <span class="text-success fw-bold">
-
-                                    Rp <?= number_format(
-                                        $transaction['total_amount']
-                                        ?? 0
-                                    ); ?>
-
-                                </span>
-
-                            </p>
-
-                        </div>
+                        <img
+                            src="../uploads/payments/<?= $transaction['payment_proof']; ?>"
+                            class="img-fluid rounded-4 shadow">
 
                     </div>
 
-                    <!-- TABLE -->
+                <?php endif; ?>
 
-                    <div class="table-responsive">
+                <!-- BUTTON -->
 
-                        <table class="table table-bordered align-middle">
+                <div class="d-flex gap-3 flex-wrap">
 
-                            <thead class="table-light">
+                    <!-- BACK -->
 
-                                <tr>
+                    <a href="transactions.php"
+                        class="btn btn-modern">
 
-                                    <th>Produk</th>
-                                    <th>Harga</th>
-                                    <th>Qty</th>
-                                    <th>Subtotal</th>
+                        Kembali
 
-                                </tr>
+                    </a>
 
-                            </thead>
+                    <!-- PAYMENT -->
 
-                            <tbody>
+                    <?php if($transaction['payment_status'] == 'pending'): ?>
 
-                                <?php
-                                $grandTotal = 0;
+                        <a href="payment.php?id=<?= $transaction['id']; ?>"
+                            class="btn btn-modern">
 
-                                while($item =
-                                    mysqli_fetch_assoc($details)) :
-                                ?>
+                            Bayar Sekarang
 
-                                <?php
-                                $price =
-                                    floatval(
-                                        $item['price'] ?? 0
-                                    );
+                        </a>
 
-                                $qty =
-                                    intval(
-                                        $item['qty'] ?? 0
-                                    );
-
-                                $subtotal = $price * $qty;
-
-                                $grandTotal += $subtotal;
-                                ?>
-
-                                <tr>
-
-                                    <td>
-
-                                        <?= htmlspecialchars(
-                                            $item['product_name']
-                                            ?? 'Produk'
-                                        ); ?>
-
-                                    </td>
-
-                                    <td>
-
-                                        Rp <?= number_format(
-                                            $price
-                                        ); ?>
-
-                                    </td>
-
-                                    <td>
-
-                                        <?= $qty; ?>
-
-                                    </td>
-
-                                    <td>
-
-                                        Rp <?= number_format(
-                                            $subtotal
-                                        ); ?>
-
-                                    </td>
-
-                                </tr>
-
-                                <?php endwhile; ?>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                    <!-- TOTAL -->
-
-                    <div class="d-flex justify-content-end mt-4">
-
-                        <div style="width:300px;">
-
-                            <div class="d-flex justify-content-between mb-2">
-
-                                <span class="fw-semibold">
-
-                                    Total
-
-                                </span>
-
-                                <span class="fw-bold text-success">
-
-                                    Rp <?= number_format(
-                                        $grandTotal
-                                    ); ?>
-
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- FOOTER -->
-
-                    <div class="text-center mt-5">
-
-                        <p class="text-muted mb-0">
-
-                            Terima kasih telah berbelanja di
-
-                            <strong>
-
-                                Penjualan App
-
-                            </strong>
-
-                        </p>
-
-                    </div>
+                    <?php endif; ?>
 
                 </div>
 

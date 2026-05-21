@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 
 require_once '../config/config.php';
@@ -7,42 +8,189 @@ require_once '../config/database.php';
 include '../includes/header.php';
 include 'navbar.php';
 
-// BUAT SESSION CART JIKA BELUM ADA
-if(!isset($_SESSION['cart']))
-{
-    $_SESSION['cart'] = [];
+?>
+
+<style>
+
+body{
+    background:
+    linear-gradient(
+        135deg,
+        #6c8cff,
+        #7b4dbe
+    );
+
+    min-height:100vh;
+
+    font-family:'Poppins', sans-serif;
+
+    color:white;
 }
 
-?>
+/* TITLE */
+
+.page-title{
+    font-size:40px;
+    font-weight:700;
+}
+
+/* GLASS CARD */
+
+.glass-card{
+    background:
+    rgba(255,255,255,0.15);
+
+    backdrop-filter:blur(12px);
+
+    border:
+    1px solid rgba(255,255,255,0.2);
+
+    border-radius:25px;
+
+    box-shadow:
+    0 8px 30px rgba(0,0,0,0.2);
+}
+
+/* TABLE */
+
+.table{
+    color:white;
+}
+
+.table thead{
+    background:
+    rgba(255,255,255,0.15);
+}
+
+/* IMAGE */
+
+.product-image{
+    width:80px;
+    height:80px;
+
+    object-fit:cover;
+
+    border-radius:15px;
+}
+
+/* BUTTON */
+
+.btn-modern{
+    border:none;
+
+    border-radius:12px;
+
+    padding:12px 18px;
+
+    font-weight:600;
+
+    transition:0.3s;
+}
+
+/* PRIMARY */
+
+.btn-primary-modern{
+    background:white;
+
+    color:#6c63ff;
+}
+
+.btn-primary-modern:hover{
+    background:#f3f4f6;
+}
+
+/* SUCCESS */
+
+.btn-success-modern{
+    background:#22c55e;
+
+    color:white;
+}
+
+.btn-success-modern:hover{
+    background:#16a34a;
+
+    color:white;
+}
+
+/* DANGER */
+
+.btn-danger-modern{
+    background:#ef4444;
+
+    color:white;
+}
+
+.btn-danger-modern:hover{
+    background:#dc2626;
+
+    color:white;
+}
+
+/* INPUT */
+
+.form-control{
+    border:none;
+
+    border-radius:12px;
+
+    padding:10px;
+}
+
+/* SUMMARY */
+
+.summary-price{
+    color:#ffe082;
+
+    font-size:30px;
+
+    font-weight:bold;
+}
+
+/* EMPTY */
+
+.empty-icon{
+    font-size:80px;
+}
+
+/* NAVBAR */
+
+.navbar{
+    background:transparent !important;
+}
+
+.navbar a{
+    color:white !important;
+}
+
+</style>
 
 <div class="container py-5">
 
-    <!-- TITLE -->
+    <!-- HEADER -->
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-5">
 
         <div>
 
-            <h2 class="fw-bold">
+            <h1 class="page-title">
 
                 Keranjang Belanja
 
-            </h2>
+            </h1>
 
-            <p class="text-muted mb-0">
+            <p class="text-light">
 
-                Daftar produk yang ingin anda beli
+                Produk yang ingin anda beli
 
             </p>
 
         </div>
 
         <a href="products.php"
-            class="btn btn-outline-primary rounded-3">
+            class="btn btn-modern btn-primary-modern">
 
-            <i class="fas fa-shopping-bag"></i>
-
-            Belanja Lagi
+            ← Lanjut Belanja
 
         </a>
 
@@ -52,14 +200,9 @@ if(!isset($_SESSION['cart']))
 
     <?php if(isset($_SESSION['success'])) : ?>
 
-        <div class="alert alert-success alert-dismissible fade show rounded-3">
+        <div class="alert alert-success rounded-4">
 
             <?= $_SESSION['success']; ?>
-
-            <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="alert"></button>
 
         </div>
 
@@ -67,192 +210,173 @@ if(!isset($_SESSION['cart']))
 
     <?php endif; ?>
 
-    <!-- CEK CART -->
+    <!-- CART -->
 
-    <?php if(count($_SESSION['cart']) > 0): ?>
+    <?php if(isset($_SESSION['cart']) && count($_SESSION['cart']) > 0): ?>
 
         <div class="row">
 
-            <!-- CART -->
+            <!-- TABLE -->
 
-            <div class="col-lg-8">
+            <div class="col-lg-8 mb-4">
 
-                <div class="card border-0 shadow-sm rounded-4">
+                <div class="glass-card p-4">
 
-                    <div class="card-body p-4">
+                    <div class="table-responsive">
 
                         <form action="update-cart.php"
                             method="POST">
 
-                            <div class="table-responsive">
+                            <table class="table align-middle">
 
-                                <table class="table align-middle">
+                                <thead>
 
-                                    <thead class="table-light">
+                                    <tr>
+
+                                        <th>Produk</th>
+                                        <th>Harga</th>
+                                        <th width="120">Qty</th>
+                                        <th>Subtotal</th>
+                                        <th>Aksi</th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    <?php
+                                    $total = 0;
+                                    ?>
+
+                                    <?php foreach($_SESSION['cart'] as $index => $item): ?>
+
+                                        <?php
+
+                                        $name =
+                                            $item['name']
+                                            ?? 'Produk';
+
+                                        $price =
+                                            isset($item['price'])
+                                            ? floatval($item['price'])
+                                            : 0;
+
+                                        $qty =
+                                            isset($item['qty'])
+                                            ? intval($item['qty'])
+                                            : 1;
+
+                                        $subtotal =
+                                            $price * $qty;
+
+                                        $total += $subtotal;
+
+                                        ?>
 
                                         <tr>
 
-                                            <th>Produk</th>
-                                            <th>Harga</th>
-                                            <th width="120">Qty</th>
-                                            <th>Subtotal</th>
-                                            <th width="100">Aksi</th>
+                                            <!-- PRODUCT -->
 
-                                        </tr>
+                                            <td>
 
-                                    </thead>
+                                                <div class="d-flex align-items-center">
 
-                                    <tbody>
+                                                    <img
+                                                        src="../uploads/products/<?= $item['image'] ?? 'netflix.jpg'; ?>"
+                                                        class="product-image me-3">
 
-                                        <?php
-                                        $total = 0;
-                                        ?>
+                                                    <div>
 
-                                        <?php foreach($_SESSION['cart'] as $index => $item): ?>
+                                                        <div class="fw-bold">
 
-                                            <?php
-
-                                            $name =
-                                                $item['name']
-                                                ?? 'Produk';
-
-                                            $price =
-                                                isset($item['price'])
-                                                ? floatval($item['price'])
-                                                : 0;
-
-                                            $qty =
-                                                isset($item['qty'])
-                                                ? intval($item['qty'])
-                                                : 1;
-
-                                            $image =
-                                                $item['image']
-                                                ?? 'default.png';
-
-                                            $subtotal =
-                                                $price * $qty;
-
-                                            $total += $subtotal;
-
-                                            ?>
-
-                                            <tr>
-
-                                                <!-- PRODUCT -->
-
-                                                <td>
-
-                                                    <div class="d-flex align-items-center">
-
-                                                        <!-- IMAGE -->
-
-                                                        <img
-                                                            src="../uploads/products/<?= $image; ?>"
-                                                            alt="<?= htmlspecialchars($name); ?>"
-                                                            width="80"
-                                                            height="80"
-                                                            class="rounded-3 border me-3"
-                                                            style="object-fit:cover;">
-
-                                                        <!-- INFO -->
-
-                                                        <div>
-
-                                                            <div class="fw-semibold mb-1">
-
-                                                                <?= htmlspecialchars($name); ?>
-
-                                                            </div>
-
-                                                            <small class="text-muted">
-
-                                                                Product ID:
-                                                                <?= $item['id']; ?>
-
-                                                            </small>
+                                                            <?= htmlspecialchars($name); ?>
 
                                                         </div>
 
+                                                        <small class="text-light">
+
+                                                            ID:
+                                                            <?= $item['id']; ?>
+
+                                                        </small>
+
                                                     </div>
 
-                                                </td>
+                                                </div>
 
-                                                <!-- PRICE -->
+                                            </td>
 
-                                                <td>
+                                            <!-- PRICE -->
 
-                                                    <span class="fw-semibold text-primary">
+                                            <td>
 
-                                                        Rp <?= number_format($price); ?>
+                                                <span class="fw-bold text-warning">
 
-                                                    </span>
+                                                    Rp <?= number_format($price); ?>
 
-                                                </td>
+                                                </span>
 
-                                                <!-- QTY -->
+                                            </td>
 
-                                                <td>
+                                            <!-- QTY -->
 
-                                                    <input
-                                                        type="number"
-                                                        name="qty[<?= $index; ?>]"
-                                                        value="<?= $qty; ?>"
-                                                        min="1"
-                                                        class="form-control rounded-3">
+                                            <td>
 
-                                                    <input
-                                                        type="hidden"
-                                                        name="id[<?= $index; ?>]"
-                                                        value="<?= $item['id']; ?>">
+                                                <input
+                                                    type="number"
+                                                    name="qty[<?= $index; ?>]"
+                                                    value="<?= $qty; ?>"
+                                                    min="1"
+                                                    class="form-control">
 
-                                                </td>
+                                                <input
+                                                    type="hidden"
+                                                    name="id[<?= $index; ?>]"
+                                                    value="<?= $item['id']; ?>">
 
-                                                <!-- SUBTOTAL -->
+                                            </td>
 
-                                                <td>
+                                            <!-- SUBTOTAL -->
 
-                                                    <span class="fw-bold text-success">
+                                            <td>
 
-                                                        Rp <?= number_format($subtotal); ?>
+                                                <span class="fw-bold text-success">
 
-                                                    </span>
+                                                    Rp <?= number_format($subtotal); ?>
 
-                                                </td>
+                                                </span>
 
-                                                <!-- DELETE -->
+                                            </td>
 
-                                                <td>
+                                            <!-- DELETE -->
 
-                                                    <a href="delete-cart.php?id=<?= $item['id']; ?>"
-                                                        class="btn btn-danger btn-sm rounded-3"
-                                                        onclick="return confirm('Hapus produk dari keranjang?')">
+                                            <td>
 
-                                                        <i class="fas fa-trash"></i>
+                                                <a href="delete-cart.php?id=<?= $item['id']; ?>"
+                                                    class="btn btn-modern btn-danger-modern btn-sm">
 
-                                                    </a>
+                                                    Hapus
 
-                                                </td>
+                                                </a>
 
-                                            </tr>
+                                            </td>
 
-                                        <?php endforeach; ?>
+                                        </tr>
 
-                                    </tbody>
+                                    <?php endforeach; ?>
 
-                                </table>
+                                </tbody>
 
-                            </div>
+                            </table>
 
-                            <!-- UPDATE BUTTON -->
+                            <!-- UPDATE -->
 
-                            <div class="d-flex justify-content-end mt-3">
+                            <div class="text-end mt-3">
 
                                 <button
                                     type="submit"
-                                    class="btn btn-primary rounded-3">
-
-                                    <i class="fas fa-sync-alt"></i>
+                                    class="btn btn-modern btn-primary-modern">
 
                                     Update Keranjang
 
@@ -272,62 +396,44 @@ if(!isset($_SESSION['cart']))
 
             <div class="col-lg-4">
 
-                <div class="card border-0 shadow-sm rounded-4">
+                <div class="glass-card p-4">
 
-                    <div class="card-body p-4">
+                    <h4 class="fw-bold mb-4">
 
-                        <h5 class="fw-bold mb-4">
+                        Ringkasan Belanja
 
-                            Ringkasan Belanja
+                    </h4>
 
-                        </h5>
+                    <div class="d-flex justify-content-between mb-3">
 
-                        <!-- TOTAL PRODUK -->
+                        <span>Total Produk</span>
 
-                        <div class="d-flex justify-content-between mb-3">
+                        <span>
 
-                            <span>Total Produk</span>
+                            <?= count($_SESSION['cart']); ?>
 
-                            <span class="fw-semibold">
-
-                                <?= count($_SESSION['cart']); ?>
-
-                            </span>
-
-                        </div>
-
-                        <!-- TOTAL -->
-
-                        <div class="d-flex justify-content-between mb-3">
-
-                            <span>Total Harga</span>
-
-                            <span class="fw-bold text-success">
-
-                                Rp <?= number_format($total); ?>
-
-                            </span>
-
-                        </div>
-
-                        <hr>
-
-                        <!-- CHECKOUT -->
-
-                        <div class="d-grid">
-
-                            <a href="checkout.php"
-                                class="btn btn-success btn-lg rounded-3">
-
-                                <i class="fas fa-credit-card"></i>
-
-                                Checkout Sekarang
-
-                            </a>
-
-                        </div>
+                        </span>
 
                     </div>
+
+                    <div class="d-flex justify-content-between mb-4">
+
+                        <span>Total Harga</span>
+
+                        <span class="summary-price">
+
+                            Rp <?= number_format($total); ?>
+
+                        </span>
+
+                    </div>
+
+                    <a href="checkout.php"
+                        class="btn btn-modern btn-success-modern w-100">
+
+                        Checkout Sekarang
+
+                    </a>
 
                 </div>
 
@@ -339,33 +445,32 @@ if(!isset($_SESSION['cart']))
 
         <!-- EMPTY -->
 
-        <div class="card border-0 shadow-sm rounded-4">
+        <div class="glass-card p-5 text-center">
 
-            <div class="card-body text-center py-5">
+            <div class="empty-icon mb-4">
 
-                <i class="fas fa-shopping-cart
-                    fa-4x text-muted mb-4"></i>
-
-                <h4 class="fw-bold">
-
-                    Keranjang Kosong
-
-                </h4>
-
-                <p class="text-muted mb-4">
-
-                    Belum ada produk di keranjang anda
-
-                </p>
-
-                <a href="products.php"
-                    class="btn btn-primary rounded-3">
-
-                    Mulai Belanja
-
-                </a>
+                🛒
 
             </div>
+
+            <h2 class="fw-bold">
+
+                Keranjang Kosong
+
+            </h2>
+
+            <p class="text-light mb-4">
+
+                Belum ada produk di keranjang anda
+
+            </p>
+
+            <a href="products.php"
+                class="btn btn-modern btn-primary-modern">
+
+                Mulai Belanja
+
+            </a>
 
         </div>
 
